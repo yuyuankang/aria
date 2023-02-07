@@ -10,7 +10,7 @@
 DEFINE_string(servers, "127.0.0.1:10010",
               "semicolon-separated list of servers");
 DEFINE_int32(id, 0, "coordinator id");
-DEFINE_int32(threads, 9, "the number of threads");
+DEFINE_int32(threads, 4, "the number of threads");
 DEFINE_int32(io, 1, "the number of i/o threads");
 DEFINE_int32(partition_num, 1, "the number of partitions");
 DEFINE_string(partitioner, "hash", "database partitioner (hash, hash2, pb)");

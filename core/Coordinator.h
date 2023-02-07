@@ -21,7 +21,7 @@ namespace aria {
 
 class Coordinator {
 public:
-  template <class Database, class Context>
+  template<class Database, class Context>
   Coordinator(std::size_t id, Database &db, const Context &context)
       : id(id), coordinator_num(context.peers.size()), peers(context.peers),
         context(context) {
@@ -88,16 +88,19 @@ public:
     auto startTime = std::chrono::steady_clock::now();
 
     uint64_t total_commit = 0, total_abort_no_retry = 0, total_abort_lock = 0,
-             total_abort_read_validation = 0, total_local = 0,
-             total_si_in_serializable = 0, total_network_size = 0;
+        total_abort_read_validation = 0, total_local = 0,
+        total_si_in_serializable = 0, total_network_size = 0;
     int count = 0;
+
+    uint64_t start_time = 0U;
+
 
     do {
       std::this_thread::sleep_for(std::chrono::seconds(1));
 
       uint64_t n_commit = 0, n_abort_no_retry = 0, n_abort_lock = 0,
-               n_abort_read_validation = 0, n_local = 0,
-               n_si_in_serializable = 0, n_network_size = 0;
+          n_abort_read_validation = 0, n_local = 0,
+          n_si_in_serializable = 0, n_network_size = 0;
 
       for (auto i = 0u; i < workers.size(); i++) {
 
@@ -132,8 +135,11 @@ public:
                 << ", si_in_serializable: " << n_si_in_serializable << " "
                 << 100.0 * n_si_in_serializable / n_commit << " %"
                 << ", local: " << 100.0 * n_local / n_commit << " %";
-      count++;
+      count++; // because at the start of the do-while loop, it sleeps for 1 seconds.
+      //TODO can this counter really reveals the throughput???
       if (count > warmup && count <= timeToRun - cooldown) {
+        start_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count());
         total_commit += n_commit;
         total_abort_no_retry += n_abort_no_retry;
         total_abort_lock += n_abort_lock;
@@ -144,16 +150,20 @@ public:
       }
 
     } while (std::chrono::duration_cast<std::chrono::seconds>(
-                 std::chrono::steady_clock::now() - startTime)
+        std::chrono::steady_clock::now() - startTime)
                  .count() < timeToRun);
 
-    count = timeToRun - warmup - cooldown;
+    auto duration = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count()) - start_time;
+
+//    count = timeToRun - warmup - cooldown;
+    count = 1.0 * duration / 1000;
 
     LOG(INFO) << "average commit: " << 1.0 * total_commit / count << " abort: "
               << 1.0 *
-                     (total_abort_no_retry + total_abort_lock +
-                      total_abort_read_validation) /
-                     count
+                 (total_abort_no_retry + total_abort_lock +
+                  total_abort_read_validation) /
+                 count
               << " (" << 1.0 * total_abort_no_retry / count << "/"
               << 1.0 * total_abort_lock / count << "/"
               << 1.0 * total_abort_read_validation / count
@@ -213,8 +223,8 @@ public:
 
       listenerThreads.emplace_back(
           [id = this->id, peers = this->peers, &inSockets = this->inSockets[i],
-           &getAddressPort,
-           tcp_quick_ack = context.tcp_quick_ack](std::size_t listener_id) {
+              &getAddressPort,
+              tcp_quick_ack = context.tcp_quick_ack](std::size_t listener_id) {
             std::vector<std::string> addressPort = getAddressPort(peers[id]);
 
             Listener l(addressPort[0].c_str(),

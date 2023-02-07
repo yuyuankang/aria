@@ -61,8 +61,8 @@ public:
   int readOnlyTransaction = 0;       //  out of 100
   int crossPartitionProbability = 0; // out of 100
 
-  std::size_t keysPerTransaction = 10;
-  std::size_t keysPerPartition = 200000;
+  std::size_t keysPerTransaction = 16;
+  std::size_t keysPerPartition = 1000000;
 
   bool isUniform = true;
   bool two_partitions = false;
