@@ -253,7 +253,7 @@ public:
 public:
   std::size_t coordinator_id, partition_id, id;
   std::chrono::steady_clock::time_point startTime;
-  std::atomic<int32_t> network_size;
+  std::atomic<int32_t> network_size; // TODO what is network_size?
   std::atomic<int32_t> local_read, remote_read;
   int32_t saved_local_read, saved_remote_read;
 

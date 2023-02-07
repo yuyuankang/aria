@@ -87,6 +87,7 @@ public:
       } while (status != ExecutorStatus::Analysis);
 
       n_started_workers.fetch_add(1);
+      // generate a batch of transaction
       generate_transactions();
       n_complete_workers.fetch_add(1);
 
@@ -101,6 +102,7 @@ public:
       // work as lock manager
       if (id < n_lock_manager) {
         // schedule transactions
+        // lock manager granting locks for the transactions
         schedule_transactions();
       } else {
         // work as executor
@@ -174,6 +176,7 @@ public:
   }
 
   void generate_transactions() {
+    // generate a batch of transaction
     if (!context.same_batch || !init_transaction) {
       init_transaction = true;
       for (auto i = id; i < transactions.size(); i += context.worker_num) {
@@ -300,8 +303,11 @@ public:
 
   void run_transactions() {
 
+
+    // TODO yuyuan: what is a lock_manager_bit?
     while (!get_lock_manager_bit(lock_manager_id) ||
            !transaction_queue.empty()) {
+
 
       if (transaction_queue.empty()) {
         process_request();
@@ -407,6 +413,7 @@ public:
   }
 
   std::size_t process_request() {
+    // TODO yuyuan: what is it doing?
 
     std::size_t size = 0;
 

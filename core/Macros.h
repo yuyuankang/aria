@@ -10,18 +10,18 @@
 DEFINE_string(servers, "127.0.0.1:10010",
               "semicolon-separated list of servers");
 DEFINE_int32(id, 0, "coordinator id");
-DEFINE_int32(threads, 1, "the number of threads");
+DEFINE_int32(threads, 9, "the number of threads");
 DEFINE_int32(io, 1, "the number of i/o threads");
 DEFINE_int32(partition_num, 1, "the number of partitions");
 DEFINE_string(partitioner, "hash", "database partitioner (hash, hash2, pb)");
 DEFINE_bool(sleep_on_retry, true, "sleep when retry aborted transactions");
-DEFINE_int32(batch_size, 100, "star or calvin batch size");
+DEFINE_int32(batch_size, 8192, "star or calvin batch size");
 DEFINE_int32(group_time, 10, "group commit frequency");
 DEFINE_int32(batch_flush, 50, "batch flush");
 DEFINE_int32(sleep_time, 1000, "retry sleep time");
-DEFINE_string(protocol, "aria", "transaction protocol");
-DEFINE_string(replica_group, "1,3", "calvin replica group");
-DEFINE_string(lock_manager, "1,1", "calvin lock manager");
+DEFINE_string(protocol, "Calvin", "transaction protocol");
+DEFINE_string(replica_group, "1", "calvin replica group"); // "1,3"
+DEFINE_string(lock_manager, "1", "calvin lock manager"); // 1,1
 DEFINE_bool(read_on_replica, false, "read from replicas");
 DEFINE_bool(local_validation, false, "local validation");
 DEFINE_bool(rts_sync, false, "rts sync");

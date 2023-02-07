@@ -2,17 +2,18 @@
 #include "core/Coordinator.h"
 #include "core/Macros.h"
 
-DEFINE_int32(read_write_ratio, 80, "read write ratio");
+DEFINE_int32(read_write_ratio, 50, "read write ratio");
 DEFINE_int32(read_only_ratio, 0, "read only transaction ratio");
 DEFINE_int32(cross_ratio, 0, "cross partition transaction ratio");
 DEFINE_int32(keys, 200000, "keys in a partition.");
-DEFINE_double(zipf, 0, "skew factor");
+DEFINE_double(zipf, 0.9, "skew factor");
 DEFINE_string(skew_pattern, "both", "skew pattern: both, read, write");
 DEFINE_bool(two_partitions, false, "dist transactions access two partitions.");
 DEFINE_bool(pwv_ycsb_star, false, "ycsb keys dependency.");
 DEFINE_bool(global_key_space, false, "ycsb global key space.");
 
 int main(int argc, char *argv[]) {
+  FLAGS_alsologtostderr = 1;
 
   google::InitGoogleLogging(argv[0]);
   google::InstallFailureSignalHandler();

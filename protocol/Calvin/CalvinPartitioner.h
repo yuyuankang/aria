@@ -26,6 +26,9 @@ public:
         break;
       }
     }
+    LOG(WARNING) << "replica group size sum=" << std::accumulate(replica_group_sizes.begin(),
+                                                             replica_group_sizes.end(), 0u);
+    LOG(WARNING) << "coordinator_num=" << coordinator_num;
     CHECK(std::accumulate(replica_group_sizes.begin(),
                           replica_group_sizes.end(), 0u) == coordinator_num);
   }
