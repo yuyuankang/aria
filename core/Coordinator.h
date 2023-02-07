@@ -91,6 +91,7 @@ public:
              total_abort_read_validation = 0, total_local = 0,
              total_si_in_serializable = 0, total_network_size = 0;
     int count = 0;
+    uint64_t start_time = 0U;
 
     do {
       std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -134,6 +135,10 @@ public:
                 << ", local: " << 100.0 * n_local / n_commit << " %";
       count++;
       if (count > warmup && count <= timeToRun - cooldown) {
+        if(start_time == 0){
+          start_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::system_clock::now().time_since_epoch()).count());
+        }
         total_commit += n_commit;
         total_abort_no_retry += n_abort_no_retry;
         total_abort_lock += n_abort_lock;
@@ -147,7 +152,13 @@ public:
                  std::chrono::steady_clock::now() - startTime)
                  .count() < timeToRun);
 
+    auto duration = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count()) - start_time;
+
     count = timeToRun - warmup - cooldown;
+    LOG(INFO) << "old count=" << count;
+    count = (double)duration/1000;
+    LOG(INFO) << "new count=" <<count;
 
     LOG(INFO) << "average commit: " << 1.0 * total_commit / count << " abort: "
               << 1.0 *
