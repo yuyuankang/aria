@@ -23,7 +23,7 @@ DEFINE_string(protocol, "aria", "transaction protocol");
 DEFINE_string(replica_group, "1,3", "calvin replica group");
 DEFINE_string(lock_manager, "1,1", "calvin lock manager");
 DEFINE_bool(read_on_replica, false, "read from replicas");
-DEFINE_bool(local_validation, false, "local validation");
+DEFINE_bool(local_validation, false, "local validatigit adon");
 DEFINE_bool(rts_sync, false, "rts sync");
 DEFINE_bool(star_sync, false, "synchronous write in the single-master phase");
 DEFINE_bool(star_dynamic_batch_size, true, "dynamic batch size");
