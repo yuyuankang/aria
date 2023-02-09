@@ -31,16 +31,16 @@ public:
 
     // create manager
 
-    auto manager = std::make_shared<CalvinManager<aria::ycsb::Workload<CalvinTransaction>>>(
+    auto manager = std::make_shared<CalvinManager>(
         coordinator_id, context.worker_num, db, context, stop_flag);
 
     // create worker
 
-    std::vector<CalvinExecutor<aria::ycsb::Workload<CalvinTransaction>> *> all_executors;
+    std::vector<CalvinExecutor<aria::ycsb::Workload> *> all_executors;
 
     for (auto i = 0u; i < context.worker_num; i++) {
 
-      auto w = std::make_shared<CalvinExecutor<aria::ycsb::Workload<CalvinTransaction>>>(
+      auto w = std::make_shared<CalvinExecutor<aria::ycsb::Workload>>(
           coordinator_id, i, db, context, manager->transactions,
           manager->storages, manager->lock_manager_status,
           manager->worker_status, manager->n_completed_workers,
@@ -53,7 +53,7 @@ public:
     workers.push_back(manager);
 
     for (auto i = 0u; i < context.worker_num; i++) {
-      static_cast<CalvinExecutor<aria::ycsb::Workload<CalvinTransaction>> *>(workers[i].get())
+      static_cast<CalvinExecutor<aria::ycsb::Workload> *>(workers[i].get())
           ->set_all_executors(all_executors);
     }
 

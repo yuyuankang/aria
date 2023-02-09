@@ -10,30 +10,26 @@
 #include "benchmark/ycsb/Storage.h"
 #include "benchmark/ycsb/Transaction.h"
 #include "core/Partitioner.h"
+#include "protocol/Calvin/CalvinTransaction.h"
 
 namespace aria {
 
 namespace ycsb {
 
-template <class Transaction> class Workload {
+class Workload {
 public:
-  using TransactionType = Transaction;
-  using DatabaseType = Database;
-  using ContextType = Context;
-  using RandomType = Random;
-  using StorageType = Storage;
 
-  Workload(std::size_t coordinator_id, DatabaseType &db, RandomType &random,
+  Workload(std::size_t coordinator_id, Database &db, Random &random,
            Partitioner &partitioner)
       : coordinator_id(coordinator_id), db(db), random(random),
         partitioner(partitioner) {}
 
-  std::unique_ptr<TransactionType> next_transaction(const ContextType &context,
-                                                    std::size_t partition_id,
-                                                    StorageType &storage) {
+  std::unique_ptr<CalvinTransaction> next_transaction(const Context &context,
+                                                      std::size_t partition_id,
+                                                      Storage &storage) {
 
-    std::unique_ptr<TransactionType> p =
-        std::make_unique<ReadModifyWrite<Transaction>>(
+    std::unique_ptr<CalvinTransaction> p =
+        std::make_unique<ReadModifyWrite<CalvinTransaction>>(
             coordinator_id, partition_id, db, context, random, partitioner,
             storage);
 
@@ -42,8 +38,8 @@ public:
 
 private:
   std::size_t coordinator_id;
-  DatabaseType &db;
-  RandomType &random;
+  Database &db;
+  Random &random;
   Partitioner &partitioner;
 };
 

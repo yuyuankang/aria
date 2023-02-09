@@ -16,24 +16,24 @@
 
 namespace aria {
 
-template <class Workload> class CalvinManager : public aria::Manager {
+class CalvinManager : public aria::Manager {
 public:
-  using base_type = aria::Manager;
 
-  using WorkloadType = Workload;
-  using DatabaseType = typename WorkloadType::DatabaseType;
-  using StorageType = typename WorkloadType::StorageType;
+
+  using WorkloadType = aria::ycsb::Workload;
+  using DatabaseType = aria::ycsb::Database;
+  using StorageType = aria::ycsb::Storage;
 
   using TransactionType = CalvinTransaction;
-  static_assert(std::is_same<typename WorkloadType::TransactionType,
-                             TransactionType>::value,
-                "Transaction types do not match.");
-  using ContextType = typename DatabaseType::ContextType;
-  using RandomType = typename DatabaseType::RandomType;
+//  static_assert(std::is_same<typename WorkloadType::TransactionType,
+//                             TransactionType>::value,
+//                "Transaction types do not match.");
+  using ContextType = aria::ycsb::Context;
+  using RandomType = aria::ycsb::Random;
 
   CalvinManager(std::size_t coordinator_id, std::size_t id, DatabaseType &db,
                 const ContextType &context, std::atomic<bool> &stopFlag)
-      : base_type(coordinator_id, id, context, stopFlag), db(db),
+      : aria::Manager(coordinator_id, id, context, stopFlag), db(db),
         partitioner(coordinator_id, context.coordinator_num,
                     CalvinHelper::string_to_vint(context.replica_group)) {
 

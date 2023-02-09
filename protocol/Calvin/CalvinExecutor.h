@@ -23,11 +23,11 @@ template<class Workload>
 class CalvinExecutor : public Worker {
 public:
   using WorkloadType = Workload;
-  using DatabaseType = typename WorkloadType::DatabaseType;
-  using StorageType = typename WorkloadType::StorageType;
+  using DatabaseType = aria::ycsb::Database;
+  using StorageType = aria::ycsb::Storage;
   using TransactionType = CalvinTransaction;
-  using ContextType = typename DatabaseType::ContextType;
-  using RandomType = typename DatabaseType::RandomType;
+  using ContextType = aria::ycsb::Context;
+  using RandomType = aria::ycsb::Random;
   using ProtocolType = Calvin<DatabaseType>;
   using MessageType = CalvinMessage;
   using MessageFactoryType = CalvinMessageFactory;
