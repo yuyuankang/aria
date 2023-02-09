@@ -19,11 +19,6 @@ namespace aria {
 class CalvinManager : public aria::Manager {
 public:
 
-
-  using WorkloadType = aria::ycsb::Workload;
-  using DatabaseType = aria::ycsb::Database;
-  using StorageType = aria::ycsb::Storage;
-
   using TransactionType = CalvinTransaction;
 //  static_assert(std::is_same<typename WorkloadType::TransactionType,
 //                             TransactionType>::value,
@@ -31,7 +26,7 @@ public:
   using ContextType = aria::ycsb::Context;
   using RandomType = aria::ycsb::Random;
 
-  CalvinManager(std::size_t coordinator_id, std::size_t id, DatabaseType &db,
+  CalvinManager(std::size_t coordinator_id, std::size_t id, aria::ycsb::Database &db,
                 const ContextType &context, std::atomic<bool> &stopFlag)
       : aria::Manager(coordinator_id, id, context, stopFlag), db(db),
         partitioner(coordinator_id, context.coordinator_num,
@@ -125,7 +120,7 @@ public:
     }
   }
 
-  void add_worker(const std::shared_ptr<CalvinExecutor<WorkloadType>>
+  void add_worker(const std::shared_ptr<CalvinExecutor>
 
                       &w) {
     workers.push_back(w);
@@ -135,11 +130,11 @@ public:
 
 public:
   RandomType random;
-  DatabaseType &db;
+  aria::ycsb::Database &db;
   CalvinPartitioner partitioner;
   std::atomic<uint32_t> lock_manager_status;
-  std::vector<std::shared_ptr<CalvinExecutor<WorkloadType>>> workers;
-  std::vector<StorageType> storages;
+  std::vector<std::shared_ptr<CalvinExecutor>> workers;
+  std::vector<aria::ycsb::Storage> storages;
   std::vector<std::unique_ptr<TransactionType>> transactions;
 };
 } // namespace aria

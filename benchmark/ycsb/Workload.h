@@ -18,14 +18,13 @@ namespace ycsb {
 
 class Workload {
 public:
-
   Workload(std::size_t coordinator_id, Database &db, Random &random,
            Partitioner &partitioner)
       : coordinator_id(coordinator_id), db(db), random(random),
         partitioner(partitioner) {}
 
   std::unique_ptr<CalvinTransaction> next_transaction(const Context &context,
-                                                      std::size_t partition_id,
+                                                    std::size_t partition_id,
                                                       Storage &storage) {
 
     std::unique_ptr<CalvinTransaction> p =

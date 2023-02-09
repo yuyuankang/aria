@@ -19,24 +19,14 @@
 
 namespace aria {
 
-template<class Workload>
+
 class CalvinExecutor : public Worker {
 public:
-  using WorkloadType = Workload;
-  using DatabaseType = aria::ycsb::Database;
-  using StorageType = aria::ycsb::Storage;
-  using TransactionType = CalvinTransaction;
-  using ContextType = aria::ycsb::Context;
-  using RandomType = aria::ycsb::Random;
-  using ProtocolType = Calvin<DatabaseType>;
-  using MessageType = CalvinMessage;
-  using MessageFactoryType = CalvinMessageFactory;
-  using MessageHandlerType = CalvinMessageHandler;
 
-  CalvinExecutor(std::size_t coordinator_id, std::size_t id, DatabaseType &db,
-                 const ContextType &context,
-                 std::vector<std::unique_ptr<TransactionType>> &transactions,
-                 std::vector<StorageType> &storages,
+  CalvinExecutor(std::size_t coordinator_id, std::size_t id, aria::ycsb::Database &db,
+                 const aria::ycsb::Context &context,
+                 std::vector<std::unique_ptr<CalvinTransaction>> &transactions,
+                 std::vector<aria::ycsb::Storage> &storages,
                  std::atomic<uint32_t> &lock_manager_status,
                  std::atomic<uint32_t> &worker_status,
                  std::atomic<uint32_t> &n_complete_workers,
@@ -55,7 +45,6 @@ public:
         n_workers(context.worker_num - n_lock_manager),
         lock_manager_id(CalvinHelper::worker_id_to_lock_manager_id(
             id, n_lock_manager, n_workers)),
-        init_transaction(false),
         random(id), // make sure each worker has a different seed.
         protocol(db, partitioner),
         delay(std::make_unique<SameDelay>(
@@ -66,7 +55,7 @@ public:
       init_message(messages[i].get(), i);
     }
 
-    messageHandlers = MessageHandlerType::get_message_handlers();
+    messageHandlers = CalvinMessageHandler::get_message_handlers();
     CHECK(n_workers > 0 && n_workers % n_lock_manager == 0);
   }
 
@@ -178,18 +167,17 @@ public:
 
   void generate_transactions() {
     // generate a batch of transaction
-      init_transaction = true;
-      for (auto i = id; i < transactions.size(); i += context.worker_num) {
-        // generate transaction
-        auto partition_id = 0;
-        transactions[i] =
-            workload.next_transaction(context, partition_id, storages[i]);
-        transactions[i]->set_id(i);
-        prepare_transaction(*transactions[i]);
-      }
+    for (auto i = id; i < transactions.size(); i += context.worker_num) {
+      // generate transaction
+      auto partition_id = 0;
+      transactions[i] =
+          workload.next_transaction(context, partition_id, storages[i]);
+      transactions[i]->set_id(i);
+      prepare_transaction(*transactions[i]);
+    }
   }
 
-  void prepare_transaction(TransactionType &txn) {
+  void prepare_transaction(CalvinTransaction &txn) {
 
     setup_prepare_handlers(txn);
     // run execute to prepare read/write set
@@ -209,7 +197,7 @@ public:
     txn.execution_phase = true;
   }
 
-  void analyze_active_coordinator(TransactionType &transaction) {
+  void analyze_active_coordinator(CalvinTransaction &transaction) {
 
     // assuming no blind write
     auto &readSet = transaction.readSet;
@@ -304,7 +292,7 @@ public:
         continue;
       }
 
-      TransactionType *transaction = transaction_queue.front();
+      CalvinTransaction *transaction = transaction_queue.front();
       bool ok = transaction_queue.pop();
       DCHECK(ok);
 
@@ -328,7 +316,7 @@ public:
     }
   }
 
-  void setup_execute_handlers(TransactionType &txn) {
+  void setup_execute_handlers(CalvinTransaction &txn) {
     txn.read_handler = [this, &txn](std::size_t worker_id, std::size_t table_id,
                                     std::size_t partition_id, std::size_t id,
                                     uint32_t key_offset, const void *key,
@@ -342,7 +330,7 @@ public:
         for (auto i = 0u; i < active_coordinators.size(); i++) {
           if (i == worker->coordinator_id || !active_coordinators[i])
             continue;
-          auto sz = MessageFactoryType::new_read_message(
+          auto sz = CalvinMessageFactory::new_read_message(
               *worker->messages[i], *table, id, key_offset, value);
           txn.network_size.fetch_add(sz);
           txn.distributed_transaction = true;
@@ -363,7 +351,7 @@ public:
     };
   };
 
-  void setup_prepare_handlers(TransactionType &txn) {
+  void setup_prepare_handlers(CalvinTransaction &txn) {
     txn.local_index_read_handler = [this](std::size_t table_id,
                                           std::size_t partition_id,
                                           const void *key, void *value) {
@@ -431,28 +419,27 @@ public:
   }
 
 private:
-  DatabaseType &db;
-  const ContextType &context;
-  std::vector<std::unique_ptr<TransactionType>> &transactions;
-  std::vector<StorageType> &storages;
+  aria::ycsb::Database &db;
+  const aria::ycsb::Context &context;
+  std::vector<std::unique_ptr<CalvinTransaction>> &transactions;
+  std::vector<aria::ycsb::Storage> &storages;
   std::atomic<uint32_t> &lock_manager_status, &worker_status;
   std::atomic<uint32_t> &n_complete_workers, &n_started_workers;
   CalvinPartitioner partitioner;
-  WorkloadType workload;
+  aria::ycsb::Workload workload;
   std::size_t n_lock_manager, n_workers;
   std::size_t lock_manager_id;
-  bool init_transaction;
-  RandomType random;
-  ProtocolType protocol;
+  aria::ycsb::Random random;
+  Calvin <aria::ycsb::Database> protocol;
   std::unique_ptr<Delay> delay;
   Percentile<int64_t> percentile;
   std::vector<std::unique_ptr<Message>> messages;
   std::vector<
       std::function<void(MessagePiece, Message &, ITable &,
-                         std::vector<std::unique_ptr<TransactionType>> &)>>
+                         std::vector<std::unique_ptr<CalvinTransaction>> &)>>
       messageHandlers;
   LockfreeQueue<Message *> in_queue, out_queue;
-  LockfreeQueue<TransactionType *> transaction_queue;
+  LockfreeQueue<CalvinTransaction *> transaction_queue;
   std::vector<CalvinExecutor *> all_executors;
 };
 } // namespace aria
