@@ -19,19 +19,6 @@
 
 namespace aria {
 
-template<class Context>
-class InferType {
-};
-
-
-
-template<>
-class InferType<aria::ycsb::Context> {
-public:
-  template<class Transaction>
-  using WorkloadType = aria::ycsb::Workload<Transaction>;
-};
-
 class WorkerFactory {
 
 public:
@@ -40,28 +27,20 @@ public:
   create_workers(std::size_t coordinator_id, Database &db,
                  const Context &context, std::atomic<bool> &stop_flag) {
 
-    std::unordered_set<std::string> protocols = {
-        "TwoPL",
-        "Calvin", "Bohm", "Aria", "AriaFB", "Pwv"};
-    CHECK(protocols.count(context.protocol) == 1);
-
     std::vector<std::shared_ptr<Worker>> workers;
-
-    using WorkloadType =
-        typename InferType<Context>::template WorkloadType<aria::CalvinTransaction>;
 
     // create manager
 
-    auto manager = std::make_shared<CalvinManager<WorkloadType>>(
+    auto manager = std::make_shared<CalvinManager<aria::ycsb::Workload<CalvinTransaction>>>(
         coordinator_id, context.worker_num, db, context, stop_flag);
 
     // create worker
 
-    std::vector<CalvinExecutor<WorkloadType> *> all_executors;
+    std::vector<CalvinExecutor<aria::ycsb::Workload<CalvinTransaction>> *> all_executors;
 
     for (auto i = 0u; i < context.worker_num; i++) {
 
-      auto w = std::make_shared<CalvinExecutor<WorkloadType>>(
+      auto w = std::make_shared<CalvinExecutor<aria::ycsb::Workload<CalvinTransaction>>>(
           coordinator_id, i, db, context, manager->transactions,
           manager->storages, manager->lock_manager_status,
           manager->worker_status, manager->n_completed_workers,
@@ -74,7 +53,7 @@ public:
     workers.push_back(manager);
 
     for (auto i = 0u; i < context.worker_num; i++) {
-      static_cast<CalvinExecutor<WorkloadType> *>(workers[i].get())
+      static_cast<CalvinExecutor<aria::ycsb::Workload<CalvinTransaction>> *>(workers[i].get())
           ->set_all_executors(all_executors);
     }
 
