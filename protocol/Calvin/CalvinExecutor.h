@@ -19,7 +19,8 @@
 
 namespace aria {
 
-template <class Workload> class CalvinExecutor : public Worker {
+template<class Workload>
+class CalvinExecutor : public Worker {
 public:
   using WorkloadType = Workload;
   using DatabaseType = typename WorkloadType::DatabaseType;
@@ -177,26 +178,15 @@ public:
 
   void generate_transactions() {
     // generate a batch of transaction
-    if (!context.same_batch || !init_transaction) {
       init_transaction = true;
       for (auto i = id; i < transactions.size(); i += context.worker_num) {
         // generate transaction
-        auto partition_id = random.uniform_dist(0, context.partition_num - 1);
+        auto partition_id = 0;
         transactions[i] =
             workload.next_transaction(context, partition_id, storages[i]);
         transactions[i]->set_id(i);
         prepare_transaction(*transactions[i]);
       }
-    } else {
-      auto now = std::chrono::steady_clock::now();
-      for (auto i = id; i < transactions.size(); i += context.worker_num) {
-        // a soft reset
-        transactions[i]->network_size.store(0);
-        transactions[i]->load_read_count();
-        transactions[i]->clear_execution_bit();
-        transactions[i]->startTime = now;
-      }
-    }
   }
 
   void prepare_transaction(TransactionType &txn) {
@@ -268,8 +258,8 @@ public:
           }
 
           if (CalvinHelper::partition_id_to_lock_manager_id(
-                  readKey.get_partition_id(), n_lock_manager,
-                  partitioner.replica_group_size) != lock_manager_id) {
+              readKey.get_partition_id(), n_lock_manager,
+              partitioner.replica_group_size) != lock_manager_id) {
             continue;
           }
 

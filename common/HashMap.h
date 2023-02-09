@@ -11,6 +11,7 @@
 
 namespace aria {
 
+
 template <std::size_t N, class KeyType, class ValueType> class HashMap {
 
 public:
