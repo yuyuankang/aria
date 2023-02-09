@@ -9,7 +9,7 @@
 #include "common/Socket.h"
 #include "core/ControlMessage.h"
 #include "core/Dispatcher.h"
-#include "core/Executor.h"
+//#include "core/Executor.h"
 #include "core/Worker.h"
 #include "core/factory/WorkerFactory.h"
 #include <boost/algorithm/string.hpp>

@@ -14,30 +14,26 @@
 #include "core/Defs.h"
 #include "core/Partitioner.h"
 #include "core/Table.h"
+#include "protocol/Calvin/CalvinTransaction.h"
 
 namespace aria {
 namespace ycsb {
 
-template <class Transaction> class ReadModifyWrite : public Transaction {
+class CalvinYCSBTransaction : public CalvinTransaction {
 
 public:
-  using DatabaseType = Database;
-  using ContextType = typename DatabaseType::ContextType;
-  using RandomType = typename DatabaseType::RandomType;
-  using StorageType = Storage;
-
   static constexpr std::size_t keys_num = 10;
 
-  ReadModifyWrite(std::size_t coordinator_id, std::size_t partition_id,
-                  DatabaseType &db, const ContextType &context,
-                  RandomType &random, Partitioner &partitioner,
-                  Storage &storage)
-      : Transaction(coordinator_id, partition_id, partitioner), db(db),
+  CalvinYCSBTransaction(std::size_t coordinator_id, std::size_t partition_id,
+                        const aria::ycsb::Context &context,
+                        aria::ycsb::Random &random, Partitioner &partitioner,
+                        Storage &storage)
+      : CalvinTransaction(coordinator_id, partition_id, partitioner),
         context(context), random(random), storage(storage),
         partition_id(partition_id),
         query(makeYCSBQuery<keys_num>()(context, partition_id, random)) {}
 
-  virtual ~ReadModifyWrite() override = default;
+  virtual ~CalvinYCSBTransaction() override = default;
 
   TransactionResult execute(std::size_t worker_id) override {
 
@@ -66,7 +62,7 @@ public:
       if (query.UPDATE[i]) {
 
         if (this->execution_phase) {
-          RandomType local_random;
+          aria::ycsb::Random local_random;
           storage.ycsb_values[i].Y_F01.assign(
               local_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
           storage.ycsb_values[i].Y_F02.assign(
@@ -102,9 +98,8 @@ public:
   }
 
 private:
-  DatabaseType &db;
-  const ContextType &context;
-  RandomType &random;
+  const aria::ycsb::Context &context;
+  aria::ycsb::Random &random;
   Storage &storage;
   std::size_t partition_id;
   YCSBQuery<keys_num> query;

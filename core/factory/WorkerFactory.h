@@ -5,7 +5,7 @@
 #pragma once
 
 #include "core/Defs.h"
-#include "core/Executor.h"
+//#include "core/Executor.h"
 #include "core/Manager.h"
 
 #include "benchmark/ycsb/Workload.h"

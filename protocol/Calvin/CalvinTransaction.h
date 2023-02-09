@@ -67,9 +67,9 @@ public:
     add_to_read_set(readKey);
   }
 
-  template <class KeyType, class ValueType>
+
   void search_for_read(std::size_t table_id, std::size_t partition_id,
-                       const KeyType &key, ValueType &value) {
+                       const ycsb::ycsb::key &key, ycsb::ycsb::value &value) {
 
     if (execution_phase) {
       return;
@@ -88,9 +88,9 @@ public:
     add_to_read_set(readKey);
   }
 
-  template <class KeyType, class ValueType>
+
   void search_for_update(std::size_t table_id, std::size_t partition_id,
-                         const KeyType &key, ValueType &value) {
+                         const ycsb::ycsb::key &key, ycsb::ycsb::value &value) {
     if (execution_phase) {
       return;
     }
@@ -108,9 +108,8 @@ public:
     add_to_read_set(readKey);
   }
 
-  template <class KeyType, class ValueType>
   void update(std::size_t table_id, std::size_t partition_id,
-              const KeyType &key, const ValueType &value) {
+              const ycsb::ycsb::key &key, ycsb::ycsb::value &value) {
 
     if (execution_phase) {
       return;
@@ -123,7 +122,7 @@ public:
 
     writeKey.set_key(&key);
     // the object pointed by value will not be updated
-    writeKey.set_value(const_cast<ValueType *>(&value));
+    writeKey.set_value(const_cast<ycsb::ycsb::value *>(&value));
 
     add_to_write_set(writeKey);
   }
