@@ -69,7 +69,6 @@ public:
       ExecutorStatus status;
       do {
         status = static_cast<ExecutorStatus>(worker_status.load());
-
         if (status == ExecutorStatus::EXIT) {
           LOG(INFO) << "CalvinExecutor " << id << " exits. ";
           return;

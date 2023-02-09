@@ -56,29 +56,6 @@ public:
     wait4_ack();
   }
 
-  virtual void non_coordinator_start() {
-
-    std::size_t n_workers = context.worker_num;
-    std::size_t n_coordinators = context.coordinator_num;
-
-    ExecutorStatus status = wait4_signal();
-    DCHECK(status == ExecutorStatus::START);
-    n_completed_workers.store(0);
-    n_started_workers.store(0);
-    set_worker_status(ExecutorStatus::START);
-    wait_all_workers_start();
-    wait4_stop(1);
-    set_worker_status(ExecutorStatus::STOP);
-    wait_all_workers_finish();
-    broadcast_stop();
-    wait4_stop(n_coordinators - 2);
-    // process replication
-    n_completed_workers.store(0);
-    set_worker_status(ExecutorStatus::CLEANUP);
-    wait_all_workers_finish();
-    send_ack();
-  }
-
   void wait_all_workers_finish() {
     std::size_t n_workers = context.worker_num;
     // wait for all workers to finish
@@ -220,19 +197,12 @@ public:
 
   void start() override {
 
-    if (coordinator_id == 0) {
-      LOG(INFO) << "Manager(worker id = " << id
-                << ") on the coordinator node started.";
-      coordinator_start();
-      LOG(INFO) << "Manager(worker id = " << id
-                << ") on the coordinator node exits.";
-    } else {
-      LOG(INFO) << "Manager(worker id = " << id
-                << ") on the non-coordinator node started.";
-      non_coordinator_start();
-      LOG(INFO) << "Manager(worker id = " << id
-                << ") on the non-coordinator node exits.";
-    }
+    LOG(INFO) << "Manager(worker id = " << id
+              << ") on the coordinator node started.";
+    coordinator_start();
+    LOG(INFO) << "Manager(worker id = " << id
+              << ") on the coordinator node exits.";
+
   }
 
   void push_message(Message *message) override {
@@ -247,21 +217,21 @@ public:
         static_cast<ControlMessage>(messagePiece.get_message_type());
 
     switch (message_type) {
-    case ControlMessage::SIGNAL:
-      signal_in_queue.push(message);
-      break;
-    case ControlMessage::VECTOR:
-      vector_in_queue.push(message);
-      break;
-    case ControlMessage::ACK:
-      ack_in_queue.push(message);
-      break;
-    case ControlMessage::STOP:
-      stop_in_queue.push(message);
-      break;
-    default:
-      CHECK(false) << "Message type: " << static_cast<uint32_t>(message_type);
-      break;
+      case ControlMessage::SIGNAL:
+        signal_in_queue.push(message);
+        break;
+      case ControlMessage::VECTOR:
+        vector_in_queue.push(message);
+        break;
+      case ControlMessage::ACK:
+        ack_in_queue.push(message);
+        break;
+      case ControlMessage::STOP:
+        stop_in_queue.push(message);
+        break;
+      default:
+        CHECK(false) << "Message type: " << static_cast<uint32_t>(message_type);
+        break;
     }
   }
 

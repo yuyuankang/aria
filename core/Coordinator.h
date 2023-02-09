@@ -21,8 +21,7 @@ namespace aria {
 
 class Coordinator {
 public:
-  template<class Database, class Context>
-  Coordinator(std::size_t id, Database &db, const Context &context)
+  Coordinator(std::size_t id, aria::ycsb::Database &db, const aria::ycsb::Context &context)
       : id(id), coordinator_num(context.peers.size()), peers(context.peers),
         context(context) {
     workerStopFlag.store(false);

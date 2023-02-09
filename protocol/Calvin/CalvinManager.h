@@ -23,11 +23,9 @@ public:
 //  static_assert(std::is_same<typename WorkloadType::TransactionType,
 //                             TransactionType>::value,
 //                "Transaction types do not match.");
-  using ContextType = aria::ycsb::Context;
-  using RandomType = aria::ycsb::Random;
 
   CalvinManager(std::size_t coordinator_id, std::size_t id, aria::ycsb::Database &db,
-                const ContextType &context, std::atomic<bool> &stopFlag)
+                const aria::ycsb::Context &context, std::atomic<bool> &stopFlag)
       : aria::Manager(coordinator_id, id, context, stopFlag), db(db),
         partitioner(coordinator_id, context.coordinator_num,
                     CalvinHelper::string_to_vint(context.replica_group)) {
@@ -129,7 +127,7 @@ public:
   void clear_lock_manager_status() { lock_manager_status.store(0); }
 
 public:
-  RandomType random;
+  aria::ycsb::Random random;
   aria::ycsb::Database &db;
   CalvinPartitioner partitioner;
   std::atomic<uint32_t> lock_manager_status;

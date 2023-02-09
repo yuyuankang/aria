@@ -22,10 +22,9 @@ namespace aria {
 class WorkerFactory {
 
 public:
-  template<class Database, class Context>
   static std::vector<std::shared_ptr<Worker>>
-  create_workers(std::size_t coordinator_id, Database &db,
-                 const Context &context, std::atomic<bool> &stop_flag) {
+  create_workers(std::size_t coordinator_id, ycsb::Database &db,
+                 const ycsb::Context &context, std::atomic<bool> &stop_flag) {
 
     std::vector<std::shared_ptr<Worker>> workers;
 
