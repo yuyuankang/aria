@@ -17,7 +17,6 @@ namespace aria {
 class CalvinTransaction {
 
 public:
-  using MetaDataType = std::atomic<uint64_t>;
 
   CalvinTransaction(std::size_t coordinator_id, std::size_t partition_id,
                     Partitioner &partitioner)

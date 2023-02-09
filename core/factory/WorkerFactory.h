@@ -8,7 +8,6 @@
 #include "core/Executor.h"
 #include "core/Manager.h"
 
-#include "benchmark/tpcc/Workload.h"
 #include "benchmark/ycsb/Workload.h"
 
 #include "protocol/Calvin/Calvin.h"
@@ -24,12 +23,7 @@ template<class Context>
 class InferType {
 };
 
-template<>
-class InferType<aria::tpcc::Context> {
-public:
-  template<class Transaction>
-  using WorkloadType = aria::tpcc::Workload<Transaction>;
-};
+
 
 template<>
 class InferType<aria::ycsb::Context> {
@@ -53,10 +47,8 @@ public:
 
     std::vector<std::shared_ptr<Worker>> workers;
 
-
-    using TransactionType = aria::CalvinTransaction;
     using WorkloadType =
-        typename InferType<Context>::template WorkloadType<TransactionType>;
+        typename InferType<Context>::template WorkloadType<aria::CalvinTransaction>;
 
     // create manager
 
