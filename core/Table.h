@@ -167,17 +167,4 @@ private:
   std::size_t partitionID_;
 };
 
-
-class TableFactory {
-public:
-  template<std::size_t N, class KeyType, class ValueType>
-  static std::unique_ptr<ITable> create_table(const Context &context,
-                                              std::size_t tableID,
-                                              std::size_t partitionID) {
-
-    return std::make_unique<Table<N, KeyType, ValueType>>(tableID, partitionID);
-
-  }
-};
-
 } // namespace aria
