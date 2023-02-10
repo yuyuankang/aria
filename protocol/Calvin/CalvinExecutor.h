@@ -216,6 +216,7 @@ public:
     }
   }
 
+  // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   void schedule_transactions() {
 
     // grant locks, once all locks are acquired, assign the transaction to
@@ -224,56 +225,40 @@ public:
     std::size_t request_id = 0;
 
     for (auto i = 0u; i < transactions.size(); i++) {
-      // do not grant locks to abort no retry transaction
-      if (!transactions[i]->abort_no_retry) {
-        bool grant_lock = false;
-        auto &readSet = transactions[i]->readSet;
-        for (auto k = 0u; k < readSet.size(); k++) {
-          auto &readKey = readSet[k];
-          auto tableId = readKey.get_table_id();
-          auto partitionId = readKey.get_partition_id();
 
-          if (!partitioner.has_master_partition(partitionId)) {
-            continue;
-          }
+      bool grant_lock = false;
 
-          auto table = db.find_table(tableId, partitionId);
-          auto key = readKey.get_key();
+      auto &readSet = transactions[i]->readSet;
 
-          if (readKey.get_local_index_read_bit()) {
-            continue;
-          }
+      for (auto k = 0u; k < readSet.size(); k++) {
+        // for each key in the read sey
+        auto &calvinRWKey = readSet[k];
+        auto tableId = calvinRWKey.get_table_id();
+        auto partitionId = calvinRWKey.get_partition_id();
 
-          if (CalvinHelper::partition_id_to_lock_manager_id(
-              readKey.get_partition_id(), n_lock_manager,
-              partitioner.replica_group_size) != lock_manager_id) {
-            continue;
-          }
+        auto table = db.find_table(tableId, partitionId);
+        auto key = calvinRWKey.get_key();
 
-          grant_lock = true;
-          std::atomic<uint64_t> &tid = table->search_metadata(key);
-          if (readKey.get_write_lock_bit()) {
-            CalvinHelper::write_lock(tid);
-          } else if (readKey.get_read_lock_bit()) {
-            CalvinHelper::read_lock(tid);
-          } else {
-            CHECK(false);
-          }
-        }
-        if (grant_lock) {
-          auto worker = get_available_worker(request_id++);
-          all_executors[worker]->transaction_queue.push(transactions[i].get());
-        }
-        // only count once
-        if (i % n_lock_manager == id) {
-          n_commit.fetch_add(1);
-        }
-      } else {
-        // only count once
-        if (i % n_lock_manager == id) {
-          n_abort_no_retry.fetch_add(1);
+        grant_lock = true;
+        std::atomic<uint64_t> &tid = table->search_metadata(key);
+        if (calvinRWKey.get_write_lock_bit()) {
+          CalvinHelper::write_lock(tid);
+        } else if (calvinRWKey.get_read_lock_bit()) {
+          CalvinHelper::read_lock(tid);
+        } else {
+          CHECK(false);
         }
       }
+
+      if (grant_lock) {
+        auto worker = get_available_worker(request_id++);
+        all_executors[worker]->transaction_queue.push(transactions[i].get());
+      }
+      // only count once
+      if (i % n_lock_manager == id) {
+        n_commit.fetch_add(1);
+      }
+
     }
     set_lock_manager_bit(id);
   }
@@ -429,7 +414,7 @@ private:
   std::size_t n_lock_manager, n_workers;
   std::size_t lock_manager_id;
   aria::ycsb::Random random;
-  Calvin <aria::ycsb::Database> protocol;
+  Calvin<aria::ycsb::Database> protocol;
   std::unique_ptr<Delay> delay;
   Percentile<int64_t> percentile;
   std::vector<std::unique_ptr<Message>> messages;

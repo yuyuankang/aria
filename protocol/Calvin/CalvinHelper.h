@@ -108,17 +108,17 @@ public:
     return remove_lock_bit(old_value);
   }
 
-  static uint64_t write_lock(std::atomic<uint64_t> &a) {
+  static uint64_t write_lock(std::atomic<uint64_t> &tid) {
     uint64_t old_value, new_value;
 
     do {
       do {
-        old_value = a.load();
+        old_value = tid.load();
       } while (is_read_locked(old_value) || is_write_locked(old_value));
-
+//      LOG(INFO) << "old value=" << old_value;
       new_value = old_value + (WRITE_LOCK_BIT_MASK << WRITE_LOCK_BIT_OFFSET);
 
-    } while (!a.compare_exchange_weak(old_value, new_value));
+    } while (!tid.compare_exchange_weak(old_value, new_value));
     return remove_lock_bit(old_value);
   }
 

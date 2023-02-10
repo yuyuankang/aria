@@ -137,8 +137,10 @@ public:
       count++; // because at the start of the do-while loop, it sleeps for 1 seconds.
       //TODO can this counter really reveals the throughput???
       if (count > warmup && count <= timeToRun - cooldown) {
-        start_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count());
+        if (start_time == 0) {
+          start_time = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::system_clock::now().time_since_epoch()).count());
+        }
         total_commit += n_commit;
         total_abort_no_retry += n_abort_no_retry;
         total_abort_lock += n_abort_lock;
