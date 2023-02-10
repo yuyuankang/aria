@@ -12,28 +12,20 @@
 
 namespace aria {
 
-template <class Database> class Calvin {
+class Calvin {
 public:
-  using DatabaseType = Database;
-  using MetaDataType = std::atomic<uint64_t>;
-  using ContextType = typename DatabaseType::ContextType;
-  using MessageType = CalvinMessage;
-  using TransactionType = CalvinTransaction;
 
-  using MessageFactoryType = CalvinMessageFactory;
-  using MessageHandlerType = CalvinMessageHandler;
-
-  Calvin(DatabaseType &db, CalvinPartitioner &partitioner)
+  Calvin(aria::ycsb::Database &db, CalvinPartitioner &partitioner)
       : db(db), partitioner(partitioner) {}
 
-  void abort(TransactionType &txn, std::size_t lock_manager_id,
+  void abort(CalvinTransaction &txn, std::size_t lock_manager_id,
              std::size_t n_lock_manager, std::size_t replica_group_size) {
     // release read locks
     release_read_locks(txn, lock_manager_id, n_lock_manager,
                        replica_group_size);
   }
 
-  bool commit(TransactionType &txn, std::size_t lock_manager_id,
+  bool commit(CalvinTransaction &txn, std::size_t lock_manager_id,
               std::size_t n_lock_manager, std::size_t replica_group_size) {
 
     // write to db
@@ -48,7 +40,7 @@ public:
     return true;
   }
 
-  void write(TransactionType &txn, std::size_t lock_manager_id,
+  void write(CalvinTransaction &txn, std::size_t lock_manager_id,
              std::size_t n_lock_manager, std::size_t replica_group_size) {
 
     auto &writeSet = txn.writeSet;
@@ -74,7 +66,7 @@ public:
     }
   }
 
-  void release_read_locks(TransactionType &txn, std::size_t lock_manager_id,
+  void release_read_locks(CalvinTransaction &txn, std::size_t lock_manager_id,
                           std::size_t n_lock_manager,
                           std::size_t replica_group_size) {
     // release read locks
@@ -107,7 +99,7 @@ public:
     }
   }
 
-  void release_write_locks(TransactionType &txn, std::size_t lock_manager_id,
+  void release_write_locks(CalvinTransaction &txn, std::size_t lock_manager_id,
                            std::size_t n_lock_manager,
                            std::size_t replica_group_size) {
 
@@ -138,7 +130,7 @@ public:
   }
 
 private:
-  DatabaseType &db;
+  aria::ycsb::Database &db;
   CalvinPartitioner &partitioner;
 };
 } // namespace aria

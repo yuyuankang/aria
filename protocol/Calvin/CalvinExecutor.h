@@ -414,7 +414,7 @@ private:
   std::size_t n_lock_manager, n_workers;
   std::size_t lock_manager_id;
   aria::ycsb::Random random;
-  Calvin<aria::ycsb::Database> protocol;
+  Calvin protocol;
   std::unique_ptr<Delay> delay;
   Percentile<int64_t> percentile;
   std::vector<std::unique_ptr<Message>> messages;
