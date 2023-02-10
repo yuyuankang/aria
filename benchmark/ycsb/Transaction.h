@@ -31,7 +31,7 @@ public:
       : CalvinTransaction(coordinator_id, partition_id, partitioner),
         context(context), random(random), storage(storage),
         partition_id(partition_id),
-        query(makeYCSBQuery<keys_num>()(context, partition_id, random)) {}
+        query(aria::ycsb::YCSBQueryProducer<keys_num>::make_query(context,  random)) {}
 
   virtual ~CalvinYCSBTransaction() override = default;
 
@@ -94,7 +94,7 @@ public:
   }
 
   void reset_query() override {
-    query = makeYCSBQuery<keys_num>()(context, partition_id, random);
+    query = aria::ycsb::YCSBQueryProducer<keys_num>::make_query(context, random);
   }
 
 private:

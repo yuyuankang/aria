@@ -31,7 +31,7 @@ public:
     // create manager
 
     auto manager = std::make_shared<CalvinManager>(
-        coordinator_id, context.worker_num, db, context, stop_flag);
+        coordinator_id, context.worker_num, context, stop_flag);
 
     // create worker
 

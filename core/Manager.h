@@ -30,31 +30,7 @@ public:
     worker_status.store(static_cast<uint32_t>(ExecutorStatus::STOP));
   }
 
-  virtual void coordinator_start() {
-
-    std::size_t n_workers = context.worker_num;
-    std::size_t n_coordinators = context.coordinator_num;
-
-    n_started_workers.store(0);
-    n_completed_workers.store(0);
-    signal_worker(ExecutorStatus::START);
-    wait_all_workers_start();
-
-    // wait till stop flag is set
-    while (!stopFlag.load()) {
-      std::this_thread::yield();
-    }
-
-    set_worker_status(ExecutorStatus::STOP);
-    wait_all_workers_finish();
-    broadcast_stop();
-    wait4_stop(n_coordinators - 1);
-    // process replication
-    n_completed_workers.store(0);
-    set_worker_status(ExecutorStatus::CLEANUP);
-    wait_all_workers_finish();
-    wait4_ack();
-  }
+  virtual void coordinator_start() {}
 
   void wait_all_workers_finish() {
     std::size_t n_workers = context.worker_num;
