@@ -60,15 +60,6 @@ public:
     DCHECK(coordinator_id == 0);
     set_worker_status(status);
 
-    // signal to everyone
-    for (auto i = 0u; i < context.coordinator_num; i++) {
-      if (i == coordinator_id) {
-        continue;
-      }
-      ControlMessageFactory::new_signal_message(*messages[i],
-                                                static_cast<uint32_t>(status));
-    }
-    flush_messages();
   }
 
   ExecutorStatus wait4_signal() {
@@ -140,36 +131,7 @@ public:
     }
   }
 
-  void send_stop(std::size_t node_id) {
 
-    DCHECK(node_id != coordinator_id);
-
-    ControlMessageFactory::new_stop_message(*messages[node_id]);
-
-    flush_messages();
-  }
-
-  void broadcast_stop() {
-
-    std::size_t n_coordinators = context.coordinator_num;
-
-    for (auto i = 0u; i < n_coordinators; i++) {
-      if (i == coordinator_id)
-        continue;
-      ControlMessageFactory::new_stop_message(*messages[i]);
-    }
-
-    flush_messages();
-  }
-
-  void send_ack() {
-
-    // only non-coordinator calls this function
-    DCHECK(coordinator_id != 0);
-
-    ControlMessageFactory::new_ack_message(*messages[0]);
-    flush_messages();
-  }
 
   void start() override {
 
@@ -233,24 +195,6 @@ public:
   }
 
 protected:
-  void flush_messages() {
-
-    for (auto i = 0u; i < messages.size(); i++) {
-      if (i == coordinator_id) {
-        continue;
-      }
-
-      if (messages[i]->get_message_count() == 0) {
-        continue;
-      }
-
-      auto message = messages[i].release();
-
-      out_queue.push(message);
-      messages[i] = std::make_unique<Message>();
-      init_message(messages[i].get(), i);
-    }
-  }
 
   void init_message(Message *message, std::size_t dest_node_id) {
     message->set_source_node_id(coordinator_id);
