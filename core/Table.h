@@ -62,10 +62,9 @@ public:
 };
 
 /* parameter version is not used in Table. */
-template<std::size_t N, class KeyType, class ValueType>
+template<std::size_t N>
 class Table : public ITable {
 public:
-  using MetaDataType = std::atomic<uint64_t>;
 
   virtual ~Table() override = default;
 
@@ -74,44 +73,44 @@ public:
 
   std::tuple<MetaDataType *, void *> search(const void *key,
                                             uint64_t version = 0) override {
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     auto &v = map_[k];
     return std::make_tuple(&std::get<0>(v), &std::get<1>(v));
   }
 
   void *search_value(const void *key, uint64_t version = 0) override {
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     return &std::get<1>(map_[k]);
   }
 
   MetaDataType &search_metadata(const void *key,
                                 uint64_t version = 0) override {
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     return std::get<0>(map_[k]);
   }
 
   std::tuple<MetaDataType *, void *> search_prev(const void *key,
                                                  uint64_t version) override {
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     auto &v = map_[k];
     return std::make_tuple(&std::get<0>(v), &std::get<1>(v));
   }
 
   void *search_value_prev(const void *key, uint64_t version) override {
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     return &std::get<1>(map_[k]);
   }
 
   MetaDataType &search_metadata_prev(const void *key,
                                      uint64_t version) override {
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     return std::get<0>(map_[k]);
   }
 
   void insert(const void *key, const void *value,
               uint64_t version = 0) override {
-    const auto &k = *static_cast<const KeyType *>(key);
-    const auto &v = *static_cast<const ValueType *>(value);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
+    const auto &v = *static_cast<const ycsb::ycsb::value *>(value);
     DCHECK(map_.contains(k) == false);
     auto &row = map_[k];
     std::get<0>(row).store(0);
@@ -120,8 +119,8 @@ public:
 
   void update(const void *key, const void *value,
               uint64_t version = 0) override {
-    const auto &k = *static_cast<const KeyType *>(key);
-    const auto &v = *static_cast<const ValueType *>(value);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
+    const auto &v = *static_cast<const ycsb::ycsb::value *>(value);
     auto &row = map_[k];
     std::get<1>(row) = v;
   }
@@ -132,37 +131,37 @@ public:
                          uint64_t version = 0) override {
 
     std::size_t size = stringPiece.size();
-    const auto &k = *static_cast<const KeyType *>(key);
+    const auto &k = *static_cast<const ycsb::ycsb::key *>(key);
     auto &row = map_[k];
     auto &v = std::get<1>(row);
 
     Decoder dec(stringPiece);
     dec >> v;
 
-    DCHECK(size - dec.size() == ClassOf<ValueType>::size());
+    DCHECK(size - dec.size() == ClassOf<ycsb::ycsb::value>::size());
   }
 
   void serialize_value(Encoder &enc, const void *value) override {
 
     std::size_t size = enc.size();
-    const auto &v = *static_cast<const ValueType *>(value);
+    const auto &v = *static_cast<const ycsb::ycsb::value *>(value);
     enc << v;
 
-    DCHECK(enc.size() - size == ClassOf<ValueType>::size());
+    DCHECK(enc.size() - size == ClassOf<ycsb::ycsb::value>::size());
   }
 
-  std::size_t key_size() override { return sizeof(KeyType); }
+  std::size_t key_size() override { return sizeof(ycsb::ycsb::key); }
 
-  std::size_t value_size() override { return sizeof(ValueType); }
+  std::size_t value_size() override { return sizeof(ycsb::ycsb::value); }
 
-  std::size_t field_size() override { return ClassOf<ValueType>::size(); }
+  std::size_t field_size() override { return ClassOf<ycsb::ycsb::value>::size(); }
 
   std::size_t tableID() override { return tableID_; }
 
   std::size_t partitionID() override { return partitionID_; }
 
 private:
-  HashMap<N, KeyType, std::tuple<MetaDataType, ValueType>> map_;
+  HashMap<N, ycsb::ycsb::key, std::tuple<std::atomic<uint64_t>, ycsb::ycsb::value>> map_;
   std::size_t tableID_;
   std::size_t partitionID_;
 };
